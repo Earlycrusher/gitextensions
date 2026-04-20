@@ -324,6 +324,7 @@ public sealed partial class RevisionGridControl : GitModuleControl, ICheckRefs, 
         _gridView.CellMouseMove += OnGridViewCellMouseMove;
         _gridView.CellMouseEnter += _gridView_CellMouseEnter;
         _gridView.CellMouseLeave += OnGridViewCellMouseLeave;
+        mainContextMenu.Closed += (_, e) => ClearRefHighlight();
 
         // Allow to drop patch file on revision grid
         _gridView.AllowDrop = true;
@@ -1922,7 +1923,10 @@ public sealed partial class RevisionGridControl : GitModuleControl, ICheckRefs, 
 
     private void OnGridViewCellMouseLeave(object? sender, DataGridViewCellEventArgs e)
     {
-        ClearRefHighlight();
+        if (!mainContextMenu.Visible)
+        {
+            ClearRefHighlight();
+        }
     }
 
     private void ClearRefHighlight()
@@ -2141,6 +2145,7 @@ public sealed partial class RevisionGridControl : GitModuleControl, ICheckRefs, 
         }
 
         IGitRef? clickedRef = _rightClickedHitInfo?.GitRef;
+        _rightClickedHitInfo = null;
         Func<IEnumerable<IGitRef>, IEnumerable<IGitRef>> filterRefs = clickedRef is null
             ? refs => refs
             : refs => refs.Where(r => r == clickedRef);
