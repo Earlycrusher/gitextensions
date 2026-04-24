@@ -20,6 +20,8 @@ public partial class DetailedSettingsPage : DistributedSettingsPage
 
     protected override void SettingsToPage()
     {
+        gbRevisionGraph.Enabled = GetCurrentSettings().SettingLevel == SettingLevel.Global;
+
         chkMergeGraphLanesHavingCommonParent.Checked = AppSettings.MergeGraphLanesHavingCommonParent.Value;
         chkRenderGraphWithDiagonals.Checked = AppSettings.RenderGraphWithDiagonals.Value;
         chkStraightenGraphDiagonals.Checked = AppSettings.StraightenGraphDiagonals.Value;
