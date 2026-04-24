@@ -978,10 +978,8 @@ public partial class FormPush : GitModuleForm
         using (WaitCursorScope.Enter(Cursors.AppStarting))
         {
             IReadOnlyList<IGitRef> remoteHeads;
-            IDetailedSettings detailedSettings = Module.GetEffectiveSettings()
-                .Detailed();
 
-            if (detailedSettings.GetRemoteBranchesDirectlyFromRemote)
+            if (DetailedSettings.GetRemoteBranchesDirectlyFromRemote.ValueOrDefault(Module.GetEffectiveSettings()))
             {
                 StartPageant(remote);
 

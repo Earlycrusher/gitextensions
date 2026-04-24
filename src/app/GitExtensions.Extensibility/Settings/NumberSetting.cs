@@ -19,9 +19,15 @@ public class NumberSetting<T> : ISetting
     public T DefaultValue { get; }
     public Control? CustomControl { get; set; }
 
+    public ISettingControlBinding CreateControlBinding(Control customControl)
+    {
+        CustomControl = customControl;
+        return CreateControlBinding();
+    }
+
     public ISettingControlBinding CreateControlBinding()
     {
-        if (typeof(T) == typeof(int))
+        if (typeof(T) == typeof(int) && CustomControl is not TextBox)
         {
             // It'd be great to write new NumericUpDownBinding((NumberSetting<int>)this, ...) but the compiler doesn't like that,
             // so we are forced to use the !-operator.

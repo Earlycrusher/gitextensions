@@ -21,6 +21,12 @@ public class BoolSetting : ISetting
     public bool DefaultValue { get; }
     public CheckBox? CustomControl { get; set; }
 
+    public ISettingControlBinding CreateControlBinding(CheckBox customControl)
+    {
+        CustomControl = customControl;
+        return CreateControlBinding();
+    }
+
     public ISettingControlBinding CreateControlBinding()
     {
         return new CheckBoxBinding(this, CustomControl);

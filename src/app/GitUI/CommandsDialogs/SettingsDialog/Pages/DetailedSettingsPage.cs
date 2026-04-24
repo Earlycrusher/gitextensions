@@ -6,11 +6,16 @@ namespace GitUI.CommandsDialogs.SettingsDialog.Pages;
 
 public partial class DetailedSettingsPage : DistributedSettingsPage
 {
+    private readonly List<ISettingControlBinding> _controlBindings;
     public DetailedSettingsPage(IServiceProvider serviceProvider)
        : base(serviceProvider)
     {
         InitializeComponent();
         InitializeComplete();
+
+        _controlBindings = [DetailedSettings.GetRemoteBranchesDirectlyFromRemote.CreateControlBinding(chkRemotesFromServer),
+                            DetailedSettings.AddMergeLogMessages.CreateControlBinding(addLogMessages),
+                            DetailedSettings.MergeLogMessagesCount.CreateControlBinding(nbMessages)];
     }
 
     public static SettingsPageReference GetPageReference()
@@ -26,12 +31,10 @@ public partial class DetailedSettingsPage : DistributedSettingsPage
         chkRenderGraphWithDiagonals.Checked = AppSettings.RenderGraphWithDiagonals.Value;
         chkStraightenGraphDiagonals.Checked = AppSettings.StraightenGraphDiagonals.Value;
 
-        IDetailedSettings detailedSettings = GetCurrentSettings()
-            .Detailed();
-
-        chkRemotesFromServer.Checked = detailedSettings.GetRemoteBranchesDirectlyFromRemote;
-        addLogMessages.Checked = detailedSettings.AddMergeLogMessages;
-        nbMessages.Text = detailedSettings.MergeLogMessagesCount.ToString();
+        foreach (ISettingControlBinding controlBinding in _controlBindings)
+        {
+            controlBinding.LoadSetting(GetCurrentSettings());
+        }
 
         base.SettingsToPage();
     }
@@ -42,15 +45,9 @@ public partial class DetailedSettingsPage : DistributedSettingsPage
         AppSettings.RenderGraphWithDiagonals.Value = chkRenderGraphWithDiagonals.Checked;
         AppSettings.StraightenGraphDiagonals.Value = chkStraightenGraphDiagonals.Checked;
 
-        IDetailedSettings detailedSettings = GetCurrentSettings()
-            .Detailed();
-
-        detailedSettings.GetRemoteBranchesDirectlyFromRemote = chkRemotesFromServer.Checked;
-        detailedSettings.AddMergeLogMessages = addLogMessages.Checked;
-
-        if (int.TryParse(nbMessages.Text, out int messagesCount))
+        foreach (ISettingControlBinding controlBinding in _controlBindings)
         {
-            detailedSettings.MergeLogMessagesCount = messagesCount;
+            controlBinding.SaveSetting(GetCurrentSettings());
         }
 
         base.PageToSettings();
