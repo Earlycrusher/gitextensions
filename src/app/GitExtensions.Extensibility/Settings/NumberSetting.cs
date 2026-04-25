@@ -85,12 +85,18 @@ public class NumberSetting<T> : ISetting
         public TextBoxBinding(NumberSetting<T> setting, TextBox? customControl)
             : base(setting, customControl)
         {
+            if (customControl is not null)
+            {
+                customControl.TextChanged += OnTextChanged;
+            }
         }
 
         public override TextBox CreateControl()
         {
-            Setting.CustomControl = new TextBox();
-            return (TextBox)Setting.CustomControl;
+            TextBox textBox = new();
+            textBox.TextChanged += OnTextChanged;
+            Setting.CustomControl = textBox;
+            return textBox;
         }
 
         public override void LoadSetting(SettingsSource settings, TextBox control)
@@ -106,6 +112,12 @@ public class NumberSetting<T> : ISetting
         {
             string controlValue = control.Text;
 
+            if (string.IsNullOrEmpty(controlValue) || !TryConvertFromString(controlValue, out object? parsedValue))
+            {
+                Setting[settings] = null;
+                return;
+            }
+
             if (settings.SettingLevel == SettingLevel.Effective)
             {
                 if (ConvertToString(Setting.ValueOrDefault(settings)) == controlValue)
@@ -114,7 +126,17 @@ public class NumberSetting<T> : ISetting
                 }
             }
 
-            Setting[settings] = ConvertFromString(controlValue);
+            Setting[settings] = parsedValue;
+        }
+
+        private static void OnTextChanged(object? sender, EventArgs e)
+        {
+            if (sender is TextBox textBox)
+            {
+                bool isValid = string.IsNullOrEmpty(textBox.Text) || TryConvertFromString(textBox.Text, out _);
+                textBox.BackColor = isValid ? TextBoxValidationColors.ValidBackColor : TextBoxValidationColors.InvalidBackColor;
+                textBox.ForeColor = isValid ? TextBoxValidationColors.ValidForeColor : TextBoxValidationColors.InvalidForeColor;
+            }
         }
     }
 
@@ -128,35 +150,35 @@ public class NumberSetting<T> : ISetting
         return value.ToString()!;
     }
 
-    private static object? ConvertFromString(string? value)
+    private static bool TryConvertFromString(string value, out object? result)
     {
-        if (string.IsNullOrEmpty(value))
-        {
-            return null;
-        }
-
         Type type = typeof(T);
-        if (type == typeof(int))
+        if (type == typeof(int) && int.TryParse(value, out int intResult))
         {
-            return int.Parse(value);
+            result = intResult;
+            return true;
         }
 
-        if (type == typeof(float))
+        if (type == typeof(float) && float.TryParse(value, out float floatResult))
         {
-            return float.Parse(value);
+            result = floatResult;
+            return true;
         }
 
-        if (type == typeof(double))
+        if (type == typeof(double) && double.TryParse(value, out double doubleResult))
         {
-            return double.Parse(value);
+            result = doubleResult;
+            return true;
         }
 
-        if (type == typeof(long))
+        if (type == typeof(long) && long.TryParse(value, out long longResult))
         {
-            return long.Parse(value);
+            result = longResult;
+            return true;
         }
 
-        return null;
+        result = null;
+        return false;
     }
 
     public object? this[SettingsSource settings]
@@ -165,15 +187,16 @@ public class NumberSetting<T> : ISetting
         {
             string? stringValue = settings.GetValue(Name);
 
-            return ConvertFromString(stringValue);
+            if (string.IsNullOrEmpty(stringValue))
+            {
+                return null;
+            }
+
+            _ = TryConvertFromString(stringValue, out object? result);
+            return result;
         }
 
-        set
-        {
-            string? stringValue = ConvertToString(value);
-
-            settings.SetValue(Name, stringValue);
-        }
+        set => settings.SetValue(Name, value?.ToString());
     }
 
     public T ValueOrDefault(SettingsSource settings)

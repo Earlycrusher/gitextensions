@@ -247,7 +247,6 @@ partial class DetailedSettingsPage
         nbMessages.Name = "nbMessages";
         nbMessages.Size = new Size(51, 23);
         nbMessages.TabIndex = 1;
-        nbMessages.TextAlign = HorizontalAlignment.Center;
         // 
         // DetailedSettingsPage
         // 
