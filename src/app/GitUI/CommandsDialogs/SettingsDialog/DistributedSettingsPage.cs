@@ -1,11 +1,21 @@
 ﻿using GitCommands.Settings;
 using GitExtensions.Extensibility.Settings;
 using Microsoft;
+using ResourceManager;
 
 namespace GitUI.CommandsDialogs.SettingsDialog;
 
 public partial class DistributedSettingsPage : SettingsPageWithHeader, IDistributedSettingsPage
 {
+    private static TranslationString _numberSettingPlaceholder = new(@"no value set");
+    private static TranslationString _stringSettingPlaceholder = new(@"no value set; for empty string, enter ""{0}"" without the double quotes");
+
+    static DistributedSettingsPage()
+    {
+        NumberSetting.PlaceholderText = _numberSettingPlaceholder.Text;
+        StringSetting.PlaceholderText = _stringSettingPlaceholder.Text;
+    }
+
     public DistributedSettingsPage(IServiceProvider serviceProvider)
        : base(serviceProvider)
     {

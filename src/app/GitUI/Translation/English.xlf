@@ -9885,6 +9885,18 @@ Diff selection:
       </trans-unit>
     </body>
   </file>
+  <file datatype="plaintext" original="SettingsPageBase" source-language="en">
+    <body>
+      <trans-unit id="_numberSettingPlaceholder.Text">
+        <source>no value set</source>
+        <target />
+      </trans-unit>
+      <trans-unit id="_stringSettingPlaceholder.Text">
+        <source>no value set; for empty string, enter "{0}" without the double quotes</source>
+        <target />
+      </trans-unit>
+    </body>
+  </file>
   <file datatype="plaintext" original="SettingsPageHeader" source-language="en">
     <body>
       <trans-unit id="DistributedRB.Text">

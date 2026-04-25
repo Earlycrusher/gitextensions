@@ -2,6 +2,14 @@
 
 public class StringSetting : ISetting
 {
+    internal const string EmptyStringValue = "<empty string>";
+
+    /// <summary>
+    ///  The text to be shown as a hint in the input control when the value is null.
+    ///  It should contain "{0}" where the <see cref="EmptyStringValue"/> replacement text should be shown.
+    /// </summary>
+    public static string PlaceholderText { get; set; } = "";
+
     public StringSetting(string name, string defaultValue)
         : this(name, name, defaultValue)
     {
@@ -39,9 +47,19 @@ public class StringSetting : ISetting
 
         public override void LoadSetting(SettingsSource settings, TextBox control)
         {
+            if (control.PlaceholderText.Length == 0 && PlaceholderText.Length > 0)
+            {
+                control.PlaceholderText = string.Format(PlaceholderText, EmptyStringValue);
+            }
+
             string? settingVal = settings.SettingLevel == SettingLevel.Effective
                 ? Setting.ValueOrDefault(settings)
                 : Setting[settings];
+
+            if (settingVal is { Length: 0 })
+            {
+                settingVal = EmptyStringValue;
+            }
 
             // for multiline control, transform "\n" in "\r\n" but prevent "\r\n" to be transformed in "\r\r\n"
             control.Text = control.Multiline
@@ -51,7 +69,18 @@ public class StringSetting : ISetting
 
         public override void SaveSetting(SettingsSource settings, TextBox control)
         {
-            string controlValue = control.Text;
+            // Trim value because the XML serializer will trim it on load anyway.
+            string? controlValue = control.Text.Trim();
+            control.Text = controlValue;
+            if (controlValue.Length == 0)
+            {
+                controlValue = null;
+            }
+            else if (controlValue == EmptyStringValue)
+            {
+                controlValue = "";
+            }
+
             if (settings.SettingLevel == SettingLevel.Effective)
             {
                 if (Setting.ValueOrDefault(settings) == controlValue)
