@@ -24,7 +24,6 @@ using GitUI.Properties;
 using GitUI.UserControls;
 using GitUI.UserControls.RevisionGrid;
 using GitUI.UserControls.RevisionGrid.Columns;
-using GitUI.UserControls.RevisionGrid.RefContextMenus;
 using GitUIPluginInterfaces;
 using Microsoft;
 using Microsoft.VisualStudio.Threading;
@@ -73,7 +72,7 @@ public sealed partial class RevisionGridControl : GitModuleControl, ICheckRefs, 
     // L tsmiSelectInLeftPanel
     // M mergeBranchToolStripMenuItem
     // N navigateToolStripMenuItem
-    // O resetAnotherBranchToHereToolStripMenuItem
+    // O resetAnotherBranchToHereToolStripMenuItem, tsmiOtherActions
     // P compareToolStripMenuItem
     // Q
     // R rebaseOnToolStripMenuItem
@@ -121,6 +120,7 @@ public sealed partial class RevisionGridControl : GitModuleControl, ICheckRefs, 
     private readonly TranslationString _noMergeBaseCommit = new("There is no common ancestor for the selected commits.");
     private readonly TranslationString _invalidDiffContainsFilter = new("Filter text '{0}' not valid for \"Diff contains\" filter.");
 
+    private readonly IReadOnlyList<(ToolStripItem Item, bool Advanced)> _contextMenuItems;
     private readonly FilterInfo _filterInfo = new();
     private readonly NavigationHistory _navigationHistory = new();
     private readonly Control _loadingControlText;
@@ -140,14 +140,6 @@ public sealed partial class RevisionGridControl : GitModuleControl, ICheckRefs, 
     private readonly ArtificialCommitChangeCount _indexChangeCount = new();
     private readonly CancellationTokenSequence _customDiffToolsSequence = new();
     private readonly CancellationTokenSequence _refreshRevisionsSequence = new();
-    private readonly RefContextMenuComposer _refContextMenuComposer = new(
-    [
-        new LocalBranchContextMenuProvider(),
-        new RemoteBranchContextMenuProvider(),
-        new TagContextMenuProvider(),
-        new StashRefContextMenuProvider(),
-        new StashSelectorContextMenuProvider(),
-    ]);
 
     /// <summary>
     /// The set of ref names that are ambiguous.
@@ -166,9 +158,6 @@ public sealed partial class RevisionGridControl : GitModuleControl, ICheckRefs, 
 
     // Tracks the ref label that was right-clicked so the context menu can offer ref-specific actions.
     private RefLabelHitInfo? _rightClickedHitInfo;
-
-    // The currently shown ref-specific context menu, kept to dispose before showing a new one.
-    private ContextMenuStrip? _refContextMenu;
 
     /// <summary>
     /// A prefix to use in git log output for parsing file names for individual revisions
@@ -215,6 +204,51 @@ public sealed partial class RevisionGridControl : GitModuleControl, ICheckRefs, 
         InitializeComponent();
         openPullRequestPageStripMenuItem.AdaptImageLightness();
         InitializeComplete();
+
+        const bool top = false;
+        const bool advanced = true;
+        _contextMenuItems = [
+            (markRevisionAsBadToolStripMenuItem, top),
+            (markRevisionAsGoodToolStripMenuItem, top),
+            (bisectSkipRevisionToolStripMenuItem, top),
+            (stopBisectToolStripMenuItem, top),
+            (sepBisect, top),
+            (copyToClipboardToolStripMenuItem, top),
+            (sepCopy, top),
+            (applyStashToolStripMenuItem, top),
+            (popStashToolStripMenuItem, top),
+            (dropStashToolStripMenuItem, top),
+            (sepStash, top),
+            (checkoutBranchToolStripMenuItem, top),
+            (tsmiPushBranch, top),
+            (mergeBranchToolStripMenuItem, top),
+            (rebaseOnToolStripMenuItem, top),
+            (resetCurrentBranchToHereToolStripMenuItem, top),
+            (sepBranch, top),
+            (tsmiSelectInLeftPanel, top),
+            (createNewBranchToolStripMenuItem, top),
+            (resetAnotherBranchToHereToolStripMenuItem, advanced),
+            (renameBranchToolStripMenuItem, top),
+            (deleteBranchToolStripMenuItem, top),
+            (sepBranchModification, top),
+            (createTagToolStripMenuItem, advanced),
+            (deleteTagToolStripMenuItem, top),
+            (sepCommit, advanced),
+            (checkoutRevisionToolStripMenuItem, advanced),
+            (revertCommitToolStripMenuItem, advanced),
+            (cherryPickCommitToolStripMenuItem, advanced),
+            (archiveRevisionToolStripMenuItem, advanced),
+            (manipulateCommitToolStripMenuItem, advanced),
+            (sepCompare, top),
+            (compareToolStripMenuItem, top),
+            (sepNavigate, advanced),
+            (navigateToolStripMenuItem, advanced),
+            (viewToolStripMenuItem, advanced),
+            (runScriptToolStripMenuItem, top),
+            (openBuildReportToolStripMenuItem, advanced),
+            (openPullRequestPageStripMenuItem, advanced),
+            (tsmiOtherActions, top)
+        ];
 
         _loadingControlText = new Label
         {
@@ -2093,12 +2127,17 @@ public sealed partial class RevisionGridControl : GitModuleControl, ICheckRefs, 
         }
 
         // If a ref label was right-clicked, show a focused context menu for that ref
-        if (_rightClickedHitInfo is RefLabelHitInfo hitInfo && (ModifierKeys == Keys.Control || (ModifierKeys != Keys.Shift && !AppSettings.AlwaysShowAdvOpt)))
+        //   If Shift is pressed or AppSettings.AlwaysShowAdvOpt, show the full context menu directly but filter the dropdowns to the clicked ref
+        //   If Control is pressed, override Shift and AlwaysShowAdvOpt, e.g. for debug purposes
+        bool focused = _rightClickedHitInfo is not null
+            && (ModifierKeys.HasFlag(Keys.Control)
+                || !(ModifierKeys.HasFlag(Keys.Shift) || AppSettings.AlwaysShowAdvOpt));
+        tsmiOtherActions.Visible = focused;
+        tsmiOtherActions.DropDownItems.Clear();
+        mainContextMenu.Items.Clear();
+        foreach ((ToolStripItem item, bool advanced) in _contextMenuItems)
         {
-            e.Cancel = true;
-            ShowRefSpecificContextMenu(hitInfo.GitRef, hitInfo.StashReflogSelector);
-            _rightClickedHitInfo = null;
-            return;
+            (focused && advanced ? tsmiOtherActions.DropDownItems : mainContextMenu.Items).Add(item);
         }
 
         IGitRef? clickedRef = _rightClickedHitInfo?.GitRef;
@@ -2114,7 +2153,7 @@ public sealed partial class RevisionGridControl : GitModuleControl, ICheckRefs, 
         SetEnabled(markRevisionAsGoodToolStripMenuItem, inTheMiddleOfBisect);
         SetEnabled(bisectSkipRevisionToolStripMenuItem, inTheMiddleOfBisect);
         SetEnabled(stopBisectToolStripMenuItem, inTheMiddleOfBisect);
-        SetEnabled(bisectSeparator, inTheMiddleOfBisect);
+        SetEnabled(sepBisect, inTheMiddleOfBisect);
 
         ContextMenuStrip deleteTagDropDown = new();
         ContextMenuStrip deleteBranchDropDown = new();
@@ -2349,36 +2388,6 @@ public sealed partial class RevisionGridControl : GitModuleControl, ICheckRefs, 
         return _ambiguousRefs!.Value.Contains(gitRef.Name)
             ? gitRef.CompleteName
             : gitRef.Name;
-    }
-
-    private void ShowRefSpecificContextMenu(IGitRef? gitRef, string? stashReflogSelector)
-    {
-        RefContextMenuContext context = new()
-        {
-            UICommands = UICommands,
-            ParentForm = ParentForm,
-            CurrentBranchRef = GitRefName.RefsHeadsPrefix + CurrentBranch.Value,
-            CurrentCheckout = CurrentCheckout,
-            IsBareRepository = Module.IsBareRepository(),
-            GetRefUnambiguousName = GetRefUnambiguousName,
-            GetLatestSelectedRevision = () => LatestSelectedRevision,
-            PerformRefreshRevisions = () => PerformRefreshRevisions(),
-            DropStash = DropStashToolStripMenuItemClick,
-        };
-
-        ContextMenuStrip? menu = _refContextMenuComposer.Build(gitRef, stashReflogSelector, context);
-        if (menu is null)
-        {
-            return;
-        }
-
-        // Dispose the previous menu before showing a new one. This avoids an
-        // ObjectDisposedException when rapidly right-clicking different ref labels,
-        // where WinForms tries to close the previous menu after it's already disposed.
-        _refContextMenu?.Dispose();
-        _refContextMenu = menu;
-        Point cursorPosition = _gridView.PointToClient(Cursor.Position);
-        menu.Show(_gridView, cursorPosition);
     }
 
     private void RebaseOnToolStripMenuItem_DropDownOpening(object sender, EventArgs e)

@@ -8580,34 +8580,6 @@ help</source>
       </trans-unit>
     </body>
   </file>
-  <file datatype="plaintext" original="LocalBranchContextMenuProvider" source-language="en">
-    <body>
-      <trans-unit id="_checkoutBranch.Text">
-        <source>Chec&amp;kout this branch</source>
-        <target />
-      </trans-unit>
-      <trans-unit id="_deleteBranch.Text">
-        <source>&amp;Delete this branch</source>
-        <target />
-      </trans-unit>
-      <trans-unit id="_mergeIntoCurrent.Text">
-        <source>&amp;Merge into current branch</source>
-        <target />
-      </trans-unit>
-      <trans-unit id="_pushBranch.Text">
-        <source>Pus&amp;h this branch</source>
-        <target />
-      </trans-unit>
-      <trans-unit id="_rebaseOnto.Text">
-        <source>&amp;Rebase current branch onto this</source>
-        <target />
-      </trans-unit>
-      <trans-unit id="_renameBranch.Text">
-        <source>R&amp;ename this branch</source>
-        <target />
-      </trans-unit>
-    </body>
-  </file>
   <file datatype="plaintext" original="LocalBranchMenuItemsStrings" source-language="en">
     <body>
       <trans-unit id="DeleteTooltip.Text">
@@ -8842,34 +8814,6 @@ This will just checkout on the submodule the commit determined by the superproje
     <body>
       <trans-unit id="$this.Title">
         <source>Plugins</source>
-        <target />
-      </trans-unit>
-    </body>
-  </file>
-  <file datatype="plaintext" original="RefContextMenuComposer" source-language="en">
-    <body>
-      <trans-unit id="_copyName.Text">
-        <source>&amp;Copy name to clipboard</source>
-        <target />
-      </trans-unit>
-    </body>
-  </file>
-  <file datatype="plaintext" original="RemoteBranchContextMenuProvider" source-language="en">
-    <body>
-      <trans-unit id="_checkoutBranch.Text">
-        <source>Chec&amp;kout this branch</source>
-        <target />
-      </trans-unit>
-      <trans-unit id="_deleteBranch.Text">
-        <source>&amp;Delete this branch</source>
-        <target />
-      </trans-unit>
-      <trans-unit id="_mergeIntoCurrent.Text">
-        <source>&amp;Merge into current branch</source>
-        <target />
-      </trans-unit>
-      <trans-unit id="_rebaseOnto.Text">
-        <source>&amp;Rebase current branch onto this</source>
         <target />
       </trans-unit>
     </body>
@@ -9738,6 +9682,10 @@ Reset the filter via View &gt; Show all branches.</source>
         <source>Stop bisect</source>
         <target />
       </trans-unit>
+      <trans-unit id="tsmiOtherActions.Text">
+        <source>&amp;Other actions</source>
+        <target />
+      </trans-unit>
       <trans-unit id="tsmiPushBranch.Text">
         <source>Pus&amp;h branch...</source>
         <target />
@@ -10122,50 +10070,6 @@ Separate the priorities with ';'.</source>
 but requires the PuTTY authentication client to run  in the background.
 When OpenSSH is used, command line dialogs are shown!
 </source>
-        <target />
-      </trans-unit>
-    </body>
-  </file>
-  <file datatype="plaintext" original="StashRefContextMenuProvider" source-language="en">
-    <body>
-      <trans-unit id="_applyStash.Text">
-        <source>Appl&amp;y stash</source>
-        <target />
-      </trans-unit>
-      <trans-unit id="_dropStash.Text">
-        <source>&amp;Drop stash...</source>
-        <target />
-      </trans-unit>
-      <trans-unit id="_popStash.Text">
-        <source>Pop &amp;stash</source>
-        <target />
-      </trans-unit>
-    </body>
-  </file>
-  <file datatype="plaintext" original="StashSelectorContextMenuProvider" source-language="en">
-    <body>
-      <trans-unit id="_applyStash.Text">
-        <source>Appl&amp;y stash</source>
-        <target />
-      </trans-unit>
-      <trans-unit id="_dropStash.Text">
-        <source>&amp;Drop stash...</source>
-        <target />
-      </trans-unit>
-      <trans-unit id="_popStash.Text">
-        <source>Pop &amp;stash</source>
-        <target />
-      </trans-unit>
-    </body>
-  </file>
-  <file datatype="plaintext" original="TagContextMenuProvider" source-language="en">
-    <body>
-      <trans-unit id="_deleteTag.Text">
-        <source>&amp;Delete this tag</source>
-        <target />
-      </trans-unit>
-      <trans-unit id="_mergeIntoCurrent.Text">
-        <source>&amp;Merge into current branch</source>
         <target />
       </trans-unit>
     </body>
