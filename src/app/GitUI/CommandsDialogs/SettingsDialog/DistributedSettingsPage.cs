@@ -1,5 +1,6 @@
 ﻿using GitCommands.Settings;
 using GitExtensions.Extensibility.Settings;
+using GitUI.SettingControlBindings;
 using Microsoft;
 using ResourceManager;
 
@@ -12,8 +13,8 @@ public partial class DistributedSettingsPage : SettingsPageWithHeader, IDistribu
 
     static DistributedSettingsPage()
     {
-        NumberSetting.PlaceholderText = _numberSettingPlaceholder.Text;
-        StringSetting.PlaceholderText = _stringSettingPlaceholder.Text;
+        NumberSettingControlBinding.PlaceholderText = _numberSettingPlaceholder.Text;
+        StringSettingControlBinding.PlaceholderText = _stringSettingPlaceholder.Text;
     }
 
     public DistributedSettingsPage(IServiceProvider serviceProvider)

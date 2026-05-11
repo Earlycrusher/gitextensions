@@ -19,69 +19,6 @@ public class PasswordSetting : ISetting
     public string DefaultValue { get; }
     public TextBox? CustomControl { get; set; }
 
-    public ISettingControlBinding CreateControlBinding()
-    {
-        return new TextBoxBinding(this, CustomControl);
-    }
-
-    private class TextBoxBinding : SettingControlBinding<PasswordSetting, TextBox>
-    {
-        public TextBoxBinding(PasswordSetting setting, TextBox? customControl)
-            : base(setting, customControl)
-        {
-        }
-
-        public override TextBox CreateControl()
-        {
-            Setting.CustomControl = new TextBox { PasswordChar = '\u25CF' };
-            return Setting.CustomControl;
-        }
-
-        public override void LoadSetting(SettingsSource settings, TextBox control)
-        {
-            if (control.PlaceholderText.Length == 0 && StringSetting.PlaceholderText.Length > 0)
-            {
-                control.PlaceholderText = string.Format(StringSetting.PlaceholderText, StringSetting.EmptyStringValue);
-            }
-
-            string? settingVal = settings.SettingLevel == SettingLevel.Effective
-                ? Setting.ValueOrDefault(settings)
-                : Setting[settings];
-
-            if (settingVal is { Length: 0 })
-            {
-                settingVal = StringSetting.EmptyStringValue;
-            }
-
-            control.Text = settingVal;
-        }
-
-        public override void SaveSetting(SettingsSource settings, TextBox control)
-        {
-            // Trim value because the XML serializer will trim it on load anyway.
-            string? controlValue = control.Text.Trim();
-            control.Text = controlValue;
-            if (controlValue.Length == 0)
-            {
-                controlValue = null;
-            }
-            else if (controlValue == StringSetting.EmptyStringValue)
-            {
-                controlValue = "";
-            }
-
-            if (settings.SettingLevel == SettingLevel.Effective)
-            {
-                if (Setting.ValueOrDefault(settings) == controlValue)
-                {
-                    return;
-                }
-            }
-
-            Setting[settings] = controlValue;
-        }
-    }
-
     public string? this[SettingsSource settings]
     {
         get => settings.GetString(Name, null);

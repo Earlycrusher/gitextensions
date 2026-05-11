@@ -1,10 +1,11 @@
 ﻿using GitExtensions.Extensibility.Settings;
+using GitUI.SettingControlBindings;
 using NSubstitute;
 
-namespace GitUIPluginInterfacesTests.Settings;
+namespace GitUITests.SettingControlBindings;
 
 [TestFixture]
-public sealed class PasswordSettingTests
+public sealed class PasswordSettingControlBindingTests
 {
     private const string SettingName = "TestSetting";
     private const string DefaultValue = "default";
@@ -15,7 +16,7 @@ public sealed class PasswordSettingTests
         PasswordSetting setting = new(SettingName, DefaultValue);
         using TextBox textBox = new();
         setting.CustomControl = textBox;
-        ISettingControlBinding binding = setting.CreateControlBinding();
+        ISettingControlBinding binding = SettingControlBindingsProvider.CreateControlBinding(setting);
         SettingsSource settingsSource = Substitute.For<SettingsSource>();
 
         textBox.Text = string.Empty;
@@ -30,7 +31,7 @@ public sealed class PasswordSettingTests
         PasswordSetting setting = new(SettingName, DefaultValue);
         using TextBox textBox = new();
         setting.CustomControl = textBox;
-        ISettingControlBinding binding = setting.CreateControlBinding();
+        ISettingControlBinding binding = SettingControlBindingsProvider.CreateControlBinding(setting);
         SettingsSource settingsSource = Substitute.For<SettingsSource>();
         settingsSource.SettingLevel.Returns(SettingLevel.Effective);
         settingsSource.GetValue(SettingName).Returns((string?)null);
@@ -47,7 +48,7 @@ public sealed class PasswordSettingTests
         PasswordSetting setting = new(SettingName, DefaultValue);
         using TextBox textBox = new();
         setting.CustomControl = textBox;
-        ISettingControlBinding binding = setting.CreateControlBinding();
+        ISettingControlBinding binding = SettingControlBindingsProvider.CreateControlBinding(setting);
         SettingsSource settingsSource = Substitute.For<SettingsSource>();
         settingsSource.SettingLevel.Returns(settingLevel);
         settingsSource.GetValue(SettingName).Returns((string?)null);
@@ -63,7 +64,7 @@ public sealed class PasswordSettingTests
         PasswordSetting setting = new(SettingName, DefaultValue);
         using TextBox textBox = new();
         setting.CustomControl = textBox;
-        ISettingControlBinding binding = setting.CreateControlBinding();
+        ISettingControlBinding binding = SettingControlBindingsProvider.CreateControlBinding(setting);
         SettingsSource settingsSource = Substitute.For<SettingsSource>();
         settingsSource.SettingLevel.Returns(SettingLevel.Effective);
         settingsSource.GetValue(SettingName).Returns((string?)null);
@@ -81,7 +82,7 @@ public sealed class PasswordSettingTests
         PasswordSetting setting = new(SettingName, DefaultValue);
         using TextBox textBox = new();
         setting.CustomControl = textBox;
-        ISettingControlBinding binding = setting.CreateControlBinding();
+        ISettingControlBinding binding = SettingControlBindingsProvider.CreateControlBinding(setting);
         SettingsSource settingsSource = Substitute.For<SettingsSource>();
 
         textBox.Text = value;
@@ -97,7 +98,7 @@ public sealed class PasswordSettingTests
         PasswordSetting setting = new(SettingName, DefaultValue);
         using TextBox textBox = new();
         setting.CustomControl = textBox;
-        ISettingControlBinding binding = setting.CreateControlBinding();
+        ISettingControlBinding binding = SettingControlBindingsProvider.CreateControlBinding(setting);
         SettingsSource settingsSource = Substitute.For<SettingsSource>();
         settingsSource.SettingLevel.Returns(settingLevel);
 

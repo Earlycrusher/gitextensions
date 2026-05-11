@@ -19,9 +19,6 @@ public static class ThemeModule
         UpdateEditorSettings();
         ColorHelper.ThemeSettings = Settings;
         ThemeFix.ThemeSettings = Settings;
-
-        TextBoxValidationColors.InvalidBackColor = OtherColors.BrightRed;
-        TextBoxValidationColors.InvalidForeColor = ColorHelper.GetTextColor(OtherColors.BrightRed);
     }
 
     private static void UpdateEditorSettings()
