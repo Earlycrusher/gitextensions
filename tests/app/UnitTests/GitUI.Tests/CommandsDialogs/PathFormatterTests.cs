@@ -1,9 +1,70 @@
-﻿using GitUI;
+﻿using GitCommands;
+using GitUI;
 
 namespace GitUITests.CommandsDialogs;
 
 public class PathFormatterTests
 {
+    private Bitmap _bitmap = null!;
+    private Graphics _graphics = null!;
+    private Font _font = null!;
+    private TruncatePathMethod _originalTruncatePathMethod;
+
+    [SetUp]
+    public void SetUp()
+    {
+        _bitmap = new Bitmap(1, 1);
+        _graphics = Graphics.FromImage(_bitmap);
+        _font = SystemFonts.DefaultFont;
+        _originalTruncatePathMethod = AppSettings.TruncatePathMethod;
+    }
+
+    [TearDown]
+    public void TearDown()
+    {
+        AppSettings.TruncatePathMethod = _originalTruncatePathMethod;
+        _graphics.Dispose();
+        _bitmap.Dispose();
+    }
+
+    [TestCase("name.ext", null, TruncatePathMethod.None, int.MaxValue, null, "name.ext", null)]
+    [TestCase("path/name.ext", null, TruncatePathMethod.None, int.MaxValue, "path/", "name.ext", null)]
+    [TestCase("name.ext", "old.ext", TruncatePathMethod.None, int.MaxValue, null, "name.ext", " (old.ext)")]
+    [TestCase("path/name.ext", "old/old.ext", TruncatePathMethod.None, int.MaxValue, "path/", "name.ext", " (old/old.ext)")]
+    [TestCase("path/name.ext", "old/old.ext", TruncatePathMethod.TrimStart, int.MaxValue, "path/", "name.ext", " (old/old.ext)")]
+    [TestCase("path/name.ext", "old/old.ext", TruncatePathMethod.TrimStart, 1, null, "", null)]
+    [TestCase("path/name.ext", "old/old.ext", TruncatePathMethod.TrimStart, 18, null, "", null)]
+    [TestCase("name.ext", null, TruncatePathMethod.FileNameOnly, int.MaxValue, null, "name.ext", null)]
+    [TestCase("path/name.ext", null, TruncatePathMethod.FileNameOnly, int.MaxValue, null, "name.ext", null)]
+    [TestCase("path/name.ext", "old/old.ext", TruncatePathMethod.FileNameOnly, int.MaxValue, null, "name.ext", " (old.ext)")]
+    public void FormatTextForDrawing_returns_expected_for_method(
+        string name,
+        string? oldName,
+        TruncatePathMethod truncatePathMethod,
+        int maxWidth,
+        string? expectedPrefix,
+        string? expectedText,
+        string? expectedSuffix)
+    {
+        AppSettings.TruncatePathMethod = truncatePathMethod;
+        PathFormatter formatter = new(_graphics, _font);
+
+        formatter.FormatTextForDrawing(maxWidth, name, oldName).Should().Be((expectedPrefix, expectedText, expectedSuffix));
+    }
+
+    [Test]
+    public void FormatTextForDrawing_TrimStart_with_empty_name_returns_null_prefix_empty_text_and_oldName_suffix()
+    {
+        // When name is empty and oldName differs, even a low maxWidth accommodates
+        // the suffix-only result produced at step 0 of the binary search.
+        const string oldName = "b";
+        AppSettings.TruncatePathMethod = TruncatePathMethod.TrimStart;
+        PathFormatter formatter = new(_graphics, _font);
+        int maxWidth = formatter.MeasureString(null, string.Empty, $" ({oldName})").Width;
+
+        formatter.FormatTextForDrawing(maxWidth, string.Empty, oldName).Should().Be((null, string.Empty, $" ({oldName})"));
+    }
+
     [TestCase("new.ext", null, "new.ext", null)]
     [TestCase("new.ext", "", "new.ext", null)]
     [TestCase("path/new.ext", null, "new.ext", null)]
