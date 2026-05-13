@@ -32,8 +32,8 @@ public class PathFormatterTests
     [TestCase("name.ext", "old.ext", TruncatePathMethod.None, int.MaxValue, null, "name.ext", " (old.ext)")]
     [TestCase("path/name.ext", "old/old.ext", TruncatePathMethod.None, int.MaxValue, "path/", "name.ext", " (old/old.ext)")]
     [TestCase("path/name.ext", "old/old.ext", TruncatePathMethod.TrimStart, int.MaxValue, "path/", "name.ext", " (old/old.ext)")]
-    [TestCase("path/name.ext", "old/old.ext", TruncatePathMethod.TrimStart, 1, null, "", null)]
-    [TestCase("path/name.ext", "old/old.ext", TruncatePathMethod.TrimStart, 18, null, "", null)]
+    [TestCase("path/name.ext", "old/old.ext", TruncatePathMethod.TrimStart, 1, null, "...", null)]
+    [TestCase("path/name.ext", "old/old.ext", TruncatePathMethod.TrimStart, 18, null, "...", null)]
     [TestCase("name.ext", null, TruncatePathMethod.FileNameOnly, int.MaxValue, null, "name.ext", null)]
     [TestCase("path/name.ext", null, TruncatePathMethod.FileNameOnly, int.MaxValue, null, "name.ext", null)]
     [TestCase("path/name.ext", "old/old.ext", TruncatePathMethod.FileNameOnly, int.MaxValue, null, "name.ext", " (old.ext)")]
@@ -63,6 +63,65 @@ public class PathFormatterTests
         int maxWidth = formatter.MeasureString(null, string.Empty, $" ({oldName})").Width;
 
         formatter.FormatTextForDrawing(maxWidth, string.Empty, oldName).Should().Be((null, string.Empty, $" ({oldName})"));
+    }
+
+    [Test]
+    public void FormatTextForDrawing_TrimStart_non_empty_name_never_yields_empty_text()
+    {
+        // Even with maxWidth so small that nothing fits, a non-empty name must still
+        // produce at least "..." so the caller always has something to display.
+        AppSettings.TruncatePathMethod = TruncatePathMethod.TrimStart;
+        PathFormatter formatter = new(_graphics, _font);
+
+        (string? prefix, string? text, string? suffix) = formatter.FormatTextForDrawing(maxWidth: 0, name: "path/file.ext", oldName: null);
+
+        prefix.Should().BeNull();
+        text.Should().Be("...");
+        suffix.Should().BeNull();
+    }
+
+    [Test]
+    public void FormatTextForDrawing_TrimStart_truncates_suffix_before_text()
+    {
+        // FormatString must consume all oldName chars before touching name chars.
+        // Check that at every step up to oldName.Length the text is unchanged,
+        // and only beyond that does text start to shrink.
+        const string name = "file.ext";
+        const string oldName = "very_long_old_name.ext";
+        AppSettings.TruncatePathMethod = TruncatePathMethod.TrimStart;
+
+        for (int step = 0; step <= oldName.Length; step++)
+        {
+            (string? prefix, string? text, string? suffix) = PathFormatter.TestAccessor.FormatString(name, oldName, step);
+
+            // Name must stay fully intact while only the suffix is being consumed.
+            prefix.Should().BeNull($"step={step}");
+            text.Should().Be(name, $"step={step}");
+        }
+
+        // One step beyond the full oldName length: name must start shrinking.
+        (string? prefixAfter, string? textAfter, string? suffixAfter) = PathFormatter.TestAccessor.FormatString(name, oldName, oldName.Length + 1);
+
+        textAfter.Should().NotBe(name, "name must start shrinking once oldName is fully consumed");
+        suffixAfter.Should().Be(" (...)", "with TrimStart the maximally-truncated oldName is still shown as '...'");
+    }
+
+    [Test]
+    public void FormatTextForDrawing_TrimStart_truncates_name_independently_of_oldName()
+    {
+        // Verify name and oldName are truncated by their respective counters (not swapped).
+        // At step 0 both strings appear unmodified.
+        const string name = "path/file.ext";
+        const string oldName = "oldpath/oldfile.ext";
+        AppSettings.TruncatePathMethod = TruncatePathMethod.TrimStart;
+        PathFormatter formatter = new(_graphics, _font);
+        int maxWidth = formatter.MeasureString("path/", "file.ext", $" ({oldName})").Width;
+
+        (string? prefix, string? text, string? suffix) = formatter.FormatTextForDrawing(maxWidth, name, oldName);
+
+        prefix.Should().Be("path/");
+        text.Should().Be("file.ext");
+        suffix.Should().Be($" ({oldName})");
     }
 
     [TestCase("new.ext", null, "new.ext", null)]
